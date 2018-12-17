@@ -200,7 +200,7 @@ function add_waypoint_popups(leaflet_wps, l_group) {
 
 /**
  * Generate an air quality report for a given route.
- * @param {Array} results Array of results from BT's cycle route data
+ * @param {Array} results Array of results from CISCO's cycle route data
  * @param {Map} map The leaflet map instance
  * @param {String} map The API key to authenticate with PEDASI
  */
@@ -275,7 +275,7 @@ function populate_map() {
     let cycle_route = $('#mapParamsCycleRoute').val();
     let pedasi_app_api_key = $('#mapParamsAppKey').val();
 
-    // Request detailed BT route data for the selected route from PEDASI, using the provided
+    // Request detailed CISCO route data for the selected route from PEDASI, using the provided
     // PEDASI Application or User API key required to authorise the request, then generate
     // air quality data for the route and add it all to the page
     let dataset_url = PEDASI_API + DATASET_CYCLEROUTE_EN;
@@ -297,7 +297,7 @@ function populate_map() {
 function get_cycle_routes() {
     let pedasi_app_api_key = $('#mapParamsAppKey').val();
 
-    // Request all BT cycle routes from PEDASI, using the provided PEDASI Application or User
+    // Request all CISCO cycle routes from PEDASI, using the provided PEDASI Application or User
     // API key required to authorise the request, then populate the cycle route dropdown
     let ped_query_url = PEDASI_API + DATASET_CYCLEROUTE_HC;
     $.ajax({

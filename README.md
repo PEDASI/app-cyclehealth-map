@@ -6,7 +6,7 @@ This PEDASI example shows how a JavaScript application can make use of the follo
 a cycling route map with a summary report of the health of that route:
 
 * Two PEDASI external data sources:
-  * BT CityVerve Portal: containing a fixed set of Manchester cycle path routes, with specific waypoint
+  * CISCO CityVerve Portal: containing a fixed set of Manchester cycle path routes, with specific waypoint
 data obtainable for each route.
   * CleanSpace: provides air quality data for a requested geolocation.
 * Leaflet.js: a JavaScript visualisation library used to plot the IoT businesses for a location on a
@@ -45,7 +45,7 @@ Then using a web browser:
 * If accessing the application via GitHub's gh-pages, go to https://southampton-rsg.github.io/app-cyclehealth-map/.
 
 You can then add your PEDASI Application or User API key, and select 'Get Routes'. The 'Cycle Route'
-dropdown will then be populated with all cycle routes within BT's cycle path catalogue. Click submit
+dropdown will then be populated with all cycle routes within CISCO's cycle path catalogue. Click submit
 to get a breakdown on the map of the cycle route, along with air quality data for each route waypoint
 obtained from CleanSpace. Hovering over a waypoint will show the extent of pollutants for that waypoint
 in a popup.
