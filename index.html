@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin=""/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <title>PEDASI Cycle Route Health Demo</title>
+  </head>
+
+  <body id="page-top" onload="JavaScript:form_init()">
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNav">
+        <a class="navbar-brand js-scroll-trigger" href="#page-top">PEDASI Cycle Route Health Demo</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav text-uppercase ml-auto">
+            <li class="nav-item">
+              <a class="nav-link js-scroll-trigger" href="https://github.com/Southampton-RSG/app-cyclehealth-map">Source</a>
+            </li>
+          </ul>
+        </div>
+    </nav>
+
+    <!-- Our input form handled by Javascript -->
+    <div class="container">
+      <div class="container mt-4 mb-1 pt-3 pl-lg-3 border rounded">
+        <form name="mapParams">
+          <div class="row">
+            <div class="col-4">
+              <label for="mapParamsCityName">PEDASI API Key</label>
+            </div>
+            <div class="col-2">
+            </div>
+            <div class="col-4">
+              <label for="mapParamsCycleRoute">Cycle Route</label>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-4">
+              <input type="text" class="form-control" id="mapParamsAppKey" placeholder="i.e. Application or User API Key">
+            </div>
+            <div class="col-2">
+              <button type="submit" class="btn btn-primary" onclick="return get_cycle_routes()">Get Routes</button>
+            </div>
+            <div class="col-4">
+              <select type="text" class="form-control" id="mapParamsCycleRoute" placeholder="Select..." value="Manchester">
+              </select>
+            </div>
+            <div class="col-1">
+              <button type="submit" class="btn btn-primary" onclick="return populate_map()">Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Where our map with the pins will be inserted -->
+    <div class="container">
+      <div class="row pt-4">
+        <div class="col-lg-12 text-center">
+          <div id="map" style="width: 100%; height: 60vw; max-height: 400px">
+        </div>
+      </div>
+    </div>
+
+    <!-- Route overview -->
+    <div class="container mt-3 pt-1 pl-lg-3 d-none" id="waypoint-report">
+
+      <!-- Our average air quality index -->
+        <div class="row pb-1">
+          <div class="col-6 align-middle text-right pt-3">
+            <h2>Average Air<br>Quality Index</h2>
+          </div>
+          <div class="text-left">
+            <div class="container" id="aqi-circular" style="width: 150px">
+            </div>
+          <div>
+        </div>
+      </div>
+
+      <!-- Per-waypoint data per route -->
+      <div class="container mb-3 pt-3 pl-lg-3 border rounded" id="waypoint-data">
+        <h2>Route Health Overview</h2>
+        <table class="table" id="waypoint-data-table">
+          <thead>
+            <th scope="col">#WP</th>
+            <th scope="col">Level</th>
+            <th scope="col">Major Pollutant</th>
+            <th scope="col">Recommendations</th>
+          </thead>
+        </table>
+      </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js" integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA==" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.js" integrity="sha256-W+ggQ0MIhtG5LaUrBTtRqUFHT0m9MnTVJqej3K2Pz2A=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/1.0.1/progressbar.min.js" integrity="sha256-VupM2GVVXK2c3Smq5LxXjUHBZveWTs35hu1al6ss6kk=" crossorigin="anonymous"></script>
+    <script src="static/js/app.js"></script>
+ </body>
+
+</html>
