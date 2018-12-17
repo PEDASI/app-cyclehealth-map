@@ -294,6 +294,10 @@ function populate_map() {
     return false;
 }
 
+/**
+ * Populate cycle route dropdown with cycle routes obtained from CISCO datasource.
+ * @returns {boolean} false Return false to ensure the page doesn't refresh on form submit.
+ */
 function get_cycle_routes() {
     let pedasi_app_api_key = $('#mapParamsAppKey').val();
 
