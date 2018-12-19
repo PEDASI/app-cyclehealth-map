@@ -71,7 +71,7 @@ function get_color_from_aqi(aqi) {
  * @param {Number} avg_aqi Value from 0-MAX_AQI indicating route average air quality
  */
 function create_avg_aqi_index(avg_aqi) {
-    $("#aqi-circular").empty();
+    $('#aqi-circular').empty();
 
     let bar_color = get_color_from_aqi(avg_aqi);
     let aqi_widget = new ProgressBar.Circle('#aqi-circular', {
@@ -209,8 +209,9 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // Delete contents of waypoint overview data from any previous runs
-    $("#waypoint-data-table > tr").remove();
+    // Delete contents of waypoint overview data from any previous runs and show progress bar
+    $('#waypoint-data-table > tr').remove();
+    $('#progress-dialogue').modal('show');
 
     // Ask CleanSpace for air quality data for each waypoint, adding it to an array
     let promises = [];
@@ -229,6 +230,9 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
                 console.log("Error: " + jq_xhr, exception);
             }
         }));
+
+        let percent = Math.round(((wp_num+1) / waypoints.length) * 100);
+        $('#processing-route-bar').css('width', percent + '%').attr('aria-valuenow', percent);
 
         // Reduce rate of CleanSpace API requests
         await sleep(200);
@@ -263,8 +267,9 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
     // Determine the boundary for our polyline and markers, and restrict map view accordingly
     map.fitBounds(l_group.getBounds());
 
-    // Make average air quality index and summary route report visible
+    // Make average air quality index and summary route report visible, and hide progress bar
     $('#waypoint-report').removeClass('d-none');
+    $('#progress-dialogue').modal('hide');
 }
 
 /**
