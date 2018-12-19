@@ -12,8 +12,8 @@ const DATASET_CLEANSPACE = '/api/datasources/5/data/';
 // Default client_id and key: for testing only!
 const CS_AUTH = "?clientId=CLIENT_ID&key=YOUR_KEY";
 
-const AQI_MAX = 60.0
-
+const MAX_AQI = 60.0;
+const MAX_WAYPOINTS = 200;
 
 let map;
 
@@ -37,7 +37,7 @@ function initialise_map() {
 
 /**
  * Return a colour based on value of air quality index, from green (good) to crimson (bad).
- * @param {Number} aqi Value from 0-AQI_MAX indicating route average air quality
+ * @param {Number} aqi Value from 0-MAX_AQI indicating route average air quality
  * @return {String} color_name Name of the colour assigned based on given index
  */
 function get_color_from_aqi(aqi) {
@@ -68,7 +68,7 @@ function get_color_from_aqi(aqi) {
 
 /**
  * Create a progressbar.js widget set to given air quality index number
- * @param {Number} avg_aqi Value from 0-AQI_MAX indicating route average air quality
+ * @param {Number} avg_aqi Value from 0-MAX_AQI indicating route average air quality
  */
 function create_avg_aqi_index(avg_aqi) {
     $("#aqi-circular").empty();
@@ -102,7 +102,7 @@ function create_avg_aqi_index(avg_aqi) {
     aqi_widget.setText(Math.round(avg_aqi * 10) / 10);
 
     // Set and animate the circular bar as a proportion of index magnitude and maximum value
-    aqi_widget.animate((AQI_MAX - Math.min(avg_aqi, AQI_MAX)) / AQI_MAX);
+    aqi_widget.animate((MAX_AQI - Math.min(avg_aqi, MAX_AQI)) / MAX_AQI);
 }
 
 /**
@@ -187,8 +187,8 @@ function add_waypoint_popups(leaflet_wps, l_group) {
 
         // Add a new waypoint circular marker which pops up an info box with waypoint pollutant data
         // when mouse hovers over it
-        let l_circle = L.circle(wp[0], {color: 'black', weight: 2, opacity: 0.5, fillOpacity: 0.0, fill: 'false', radius: 15}); //, popupAnchor: [200, -20]});
-        let aq_str = '<p><b>Waypoint ' + (wp_num+1) + '</b></p><p>';
+        let l_circle = L.circle(wp[0], {color: 'black', weight: 2, opacity: 0.5, fillOpacity: 0.0, fill: 'false', radius: 15});
+        let aq_str = '<p><b>Waypoint ' + (wp_num+1) + '</b><br><b>AQI: ' + wp[1].index + '</b></p><p>';
         for(let pol in wp[1].pollutant) {
             aq_str += '<b>' + pol + ':</b> ' + wp[1].pollutant[pol] + '<br>';
         }
@@ -212,13 +212,13 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
     // Delete contents of waypoint overview data from any previous runs
     $("#waypoint-data-table > tr").remove();
 
-    // Ask CleanSpace for air quality data for each waypoints, adding it to an array
+    // Ask CleanSpace for air quality data for each waypoint, adding it to an array
     let promises = [];
     let leaflet_wps = [];
-    for(let wp_num = 0; (wp_num < waypoints.length) && (wp_num < 30); wp_num++) {
+    for(let wp_num = 0; (wp_num < waypoints.length) && (wp_num < MAX_WAYPOINTS); wp_num++) {
         let waypoint = waypoints[wp_num];
 
-        let cleanspace_query_url = PEDASI_API + DATASET_CLEANSPACE + CS_AUTH + "&lat=" + waypoint[1] + "&lng=" + waypoint[0];
+        let cleanspace_query_url = PEDASI_API + DATASET_CLEANSPACE + CS_AUTH + "&lng=" + waypoint[0] + "&lat=" + waypoint[1];
         promises.push($.ajax({
             url: cleanspace_query_url,
             type: "GET",
@@ -268,10 +268,86 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
 }
 
 /**
+ * Convert a GPX 1.1 route into an array of waypoints.
+ * @param {String} gpx_route GPX 1.1 XML document string of route data
+ * @return {Array} waypoints Array of lat/lng coordinates
+ */
+function convert_gpx(gpx_route) {
+    // Extract list of route data embedded in XML document
+    let xml_doc = $.parseXML(gpx_route);
+    let xml = $(xml_doc);
+    let segment = xml.find('trkseg');
+    let wp_list = segment[0].getElementsByTagName('trkpt');
+
+    // Add each route point to an array of waypoints
+    let waypoints = [];
+    for(let wp_num = 0; wp_num < wp_list.length; wp_num++) {
+        let wp = wp_list[wp_num];
+        let lng = parseFloat(wp.getAttribute('lon'));
+        let lat = parseFloat(wp.getAttribute('lat'));
+
+        waypoints.push([parseFloat(lng), parseFloat(lat)]);
+    }
+
+    return waypoints;
+}
+
+/**
+ * Convert a GPX 1.1 route into an array of waypoints.
+ * @param {String} gpx_route XML string of GPX 1.1 route
+ * @return {Array} waypoints Array of lat/lng coordinates
+ */
+function simplify_waypoints(waypoints) {
+    // Need to convert to Leaflet points (type used by simplify())
+    let l_points = waypoints.map((wp, i, arr) => {
+        return L.point(wp[0], wp[1]);
+    });
+
+    let simplified_points = L.LineUtil.simplify(l_points, 0.0002);
+
+    // Convert back to our basic array of coordinates
+    let new_waypoints = simplified_points.map((p, i, arr) => {
+        return [p.x, p.y];
+    });
+
+    return new_waypoints;
+}
+
+/**
+ * Generate route report from uploaded GPX file.
+ */
+function report_from_gpx() {
+    let pedasi_app_api_key = $('#mapParamsAppKey').val();
+    let file = $('#upload-gpx').prop('files')[0];
+    if (!file) {
+        return;
+    }
+
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        let all_waypoints = convert_gpx(e.target.result);
+        let waypoints = simplify_waypoints(all_waypoints);
+        generate_route_report(waypoints, map, pedasi_app_api_key);
+    }
+    reader.readAsText(file);
+}
+
+/**
+ * Reset uploaded file on form, and invoke the file selector dialogue for selecting a GPX file.
+ * @returns {boolean} false Return false to ensure the page doesn't refresh on form submit.
+ */
+function select_gpx_file() {
+    $('#upload-gpx').val('');
+    $('#upload-gpx').trigger('click');
+
+    return false;
+}
+
+/**
  * Update map and summary with selected route and air quality data for that route.
  * @returns {boolean} false Return false to ensure the page doesn't refresh on form submit.
  */
-function populate_map() {
+function report_from_staticroutes() {
     let cycle_route = $('#mapParamsCycleRoute').val();
     let pedasi_app_api_key = $('#mapParamsAppKey').val();
 
@@ -320,6 +396,9 @@ function get_cycle_routes() {
     return false;
 }
 
-function form_init() {
+/**
+ * Initialise our global map on page load.
+ */
+function map_init() {
     map = initialise_map();
 }
