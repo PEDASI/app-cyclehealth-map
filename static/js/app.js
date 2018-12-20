@@ -409,6 +409,8 @@ function report_from_staticroutes() {
         success: function(response) {
             let waypoints = response[0].loc.coordinates;
             generate_route_report(waypoints, map, pedasi_app_api_key);
+        }, error: function(jq_xhr, exception) {
+            console.log("Error: " + jq_xhr, exception);
         }
     });
 
@@ -435,6 +437,8 @@ function get_cycle_routes() {
                 let route_name = response.items[item_num]['item-metadata'][0].val;
                 $('#mapParamsCycleRoute').append($('<option></option>').val(route_href).html(route_name));
             }
+        }, error: function(jq_xhr, exception) {
+            console.log("Error: " + jq_xhr, exception);
         }
     });
 
