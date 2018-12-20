@@ -399,7 +399,7 @@ function report_from_staticroutes() {
     // PEDASI Application or User API key required to authorise the request, then generate
     // air quality data for the route and add it all to the page
     let dataset_url = PEDASI_API + DATASET_CYCLEROUTE_EN;
-    let ped_query_url = dataset_url + cycle_route + '/data';
+    let ped_query_url = dataset_url + cycle_route + '/data/';
 
     add_to_progress_log('Obtaining CISCO CityVerve cycle route via PEDASI...');
     $.ajax({
