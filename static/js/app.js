@@ -199,6 +199,33 @@ function add_waypoint_popups(leaflet_wps, l_group) {
 }
 
 /**
+ * Set percentage of progress bar.
+ * @param {Number} percent Percentage to set
+ */
+function set_progress_percentage(percent) {
+    $('#processing-route-bar').css('width', percent + '%').attr('aria-valuenow', percent);
+}
+
+/**
+ * Reset our progress bar and log.
+ */
+function reset_progress() {
+    set_progress_percentage(0);
+    $('#progress-text').empty();
+}
+
+/**
+ * Add log text to progress log.
+ * @param {String} log_str Log string to append to log text
+ */
+function add_to_progress_log(log_str) {
+    $('<div />').text(log_str).appendTo('#progress-text');
+
+    let height = $('#progress-text').get(0).scrollHeight;
+    $('#progress-text').animate({ scrollTop: height }, 500);
+}
+
+/**
  * Generate an air quality report for a given route.
  * @param {Array} results Array of results from CISCO's cycle route data
  * @param {Map} map The leaflet map instance
@@ -211,7 +238,8 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
 
     // Delete contents of waypoint overview data from any previous runs and show progress bar
     $('#waypoint-data-table > tr').remove();
-    $('#progress-dialogue').modal('show');
+
+    add_to_progress_log('Initiating ' + waypoints.length + ' CleanSpace air quality requests via PEDASI...');
 
     // Ask CleanSpace for air quality data for each waypoint, adding it to an array
     let promises = [];
@@ -232,7 +260,7 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
         }));
 
         let percent = Math.round(((wp_num+1) / waypoints.length) * 100);
-        $('#processing-route-bar').css('width', percent + '%').attr('aria-valuenow', percent);
+        set_progress_percentage(percent);
 
         // Reduce rate of CleanSpace API requests
         await sleep(200);
@@ -255,6 +283,8 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
     // Create/replace average air quality index widget with calculated average
     create_avg_aqi_index(avg_aqi);
 
+    add_to_progress_log('Generating route map and air quality report...');
+
     // Create a Leaflet feature group on our map which contains the route and air quality markers,
     // then add the route and the waypoint markers to it
     let l_group = L.featureGroup().addTo(map);
@@ -264,10 +294,13 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
     // Add summary route report
     add_aqi_route_overview(leaflet_wps);
 
+    // Pause to ensure last log entries are visible before progress panel is closed
+    await sleep(500);
+
     // Determine the boundary for our polyline and markers, and restrict map view accordingly
     map.fitBounds(l_group.getBounds());
 
-    // Make average air quality index and summary route report visible, and hide progress bar
+    // Make average air quality index and summary route report visible
     $('#waypoint-report').removeClass('d-none');
     $('#progress-dialogue').modal('hide');
 }
@@ -322,6 +355,9 @@ function simplify_waypoints(waypoints) {
  * Generate route report from uploaded GPX file.
  */
 function report_from_gpx() {
+    reset_progress();
+    $('#progress-dialogue').modal('show');
+
     let pedasi_app_api_key = $('#mapParamsAppKey').val();
     let file = $('#upload-gpx').prop('files')[0];
     if (!file) {
@@ -353,6 +389,9 @@ function select_gpx_file() {
  * @returns {boolean} false Return false to ensure the page doesn't refresh on form submit.
  */
 function report_from_staticroutes() {
+    reset_progress();
+    $('#progress-dialogue').modal('show');
+
     let cycle_route = $('#mapParamsCycleRoute').val();
     let pedasi_app_api_key = $('#mapParamsAppKey').val();
 
@@ -362,6 +401,7 @@ function report_from_staticroutes() {
     let dataset_url = PEDASI_API + DATASET_CYCLEROUTE_EN;
     let ped_query_url = dataset_url + cycle_route + '/data';
 
+    add_to_progress_log('Obtaining CISCO CityVerve cycle route via PEDASI...');
     $.ajax({
         url: ped_query_url,
         type: "GET",
