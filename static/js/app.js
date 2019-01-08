@@ -3,16 +3,18 @@
 
 "use strict";
 
-// PEDASI convenience set up
-const PEDASI_API = 'https://dev.iotobservatory.io';
-const DATASET_CYCLEROUTE_HC = '/api/datasources/4/data/';
-const DATASET_CYCLEROUTE_EN = '/api/datasources/3/datasets/';
-const DATASET_CLEANSPACE = '/api/datasources/5/data/';
+// PEDASI API endpoints
+const PEDASI_API = 'https://dev.iotobservatory.io';           // Root PEDASI API endpoint
+const DATASET_CYCLEROUTE_HC = '/api/datasources/4/data/';     // CISCO's cycleroute external HyperCat data source
+const DATASET_CYCLEROUTE_EN = '/api/datasources/3/datasets/'; // CISCO's cycleroute external Entity API data source
+const DATASET_CLEANSPACE = '/api/datasources/5/data/';        // CleanSpace's external data source
 
 // Default client_id and key: for testing only!
 const CS_AUTH = "?clientId=CLIENT_ID&key=YOUR_KEY";
 
+// A working maximum Air Quality Index used to provide a quality percentage
 const MAX_AQI = 60.0;
+// Cycleroute waypoints over this number will not be processed
 const MAX_WAYPOINTS = 200;
 
 let map;
