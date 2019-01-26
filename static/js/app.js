@@ -1,6 +1,3 @@
-/*jshint esversion: 6 */
-/*jshint esversion: 6 */
-
 "use strict";
 
 // PEDASI API endpoints
@@ -16,6 +13,31 @@ const CS_AUTH = "?clientId=CLIENT_ID&key=YOUR_KEY";
 const MAX_AQI = 60.0;
 // Cycleroute waypoints over this number will not be processed
 const MAX_WAYPOINTS = 200;
+
+const AQI_CIRCULAR_STYLE = {
+        easing: 'easeInOut',
+        duration: 2000,
+        strokeWidth: 8,
+        trailWidth: 2,
+        from: {color: '#AA0000'},
+        to: {color: '#00AA00'},
+        //color: bar_color,
+        text: {
+            style: {
+                color: '#000000',
+                position: 'relative',
+                top: '30%',
+                transform: {
+                    prefix: true,
+                    value: 'translate(0%, -202%)'
+                },
+                'text-align': 'center',
+                'font-size': '28px',
+                'font-weight': 'bold'
+            }
+        }
+    };
+
 
 let map;
 
@@ -72,33 +94,15 @@ function get_color_from_aqi(aqi) {
  * Create a progressbar.js widget set to given air quality index number
  * @param {Number} avg_aqi Value from 0-MAX_AQI indicating route average air quality
  */
-function create_avg_aqi_index(avg_aqi) {
-    $('#aqi-circular').empty();
+function create_aqi_index(avg_aqi, html_id) {
+    $(html_id).empty();
 
     let bar_color = get_color_from_aqi(avg_aqi);
-    let aqi_widget = new ProgressBar.Circle('#aqi-circular', {
-        easing: 'easeInOut',
-        duration: 2000,
-        strokeWidth: 8,
-        trailWidth: 2,
-        from: {color: '#AA0000'},
-        to: {color: '#00AA00'},
-        color: bar_color,
-        text: {
-            style: {
-                color: '#000000',
-                position: 'relative',
-                top: '30%',
-                transform: {
-                    prefix: true,
-                    value: 'translate(0%, -192%)'
-                },
-                'text-align': 'center',
-                'font-size': '28px',
-                'font-weight': 'bold'
-            }
-        }
-    });
+
+    let style = $.extend({}, AQI_CIRCULAR_STYLE);
+    style.color = bar_color;
+
+    let aqi_widget = new ProgressBar.Circle(html_id, style);
 
     // Set widget text to value with 2 significant digits
     aqi_widget.setText(Math.round(avg_aqi * 10) / 10);
@@ -238,6 +242,15 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    // Delete any previous map contents
+    map.eachLayer(function(layer) {
+        map.removeLayer(layer);
+    });
+
+    // Add new TileLayer specifying the interface format to OpenStreetMap
+    let layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    map.addLayer(layer);
+
     // Delete contents of waypoint overview data from any previous runs and show progress bar
     $('#waypoint-data-table > tr').remove();
 
@@ -282,8 +295,14 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
         return sum + parseFloat(wp[1].index);
     }, 0) / leaflet_wps.length;
 
+    // Calculate max air quality indexes for route
+    let min_aqi = Math.min.apply(Math, leaflet_wps.map(function(w) { return w[1].index; }));
+    let max_aqi = Math.max.apply(Math, leaflet_wps.map(function(w) { return w[1].index; }));
+
     // Create/replace average air quality index widget with calculated average
-    create_avg_aqi_index(avg_aqi);
+    create_aqi_index(min_aqi, '#min-aqi-circular');
+    create_aqi_index(avg_aqi, '#avg-aqi-circular');
+    create_aqi_index(max_aqi, '#max-aqi-circular');
 
     add_to_progress_log('Generating route map and air quality report...');
 
