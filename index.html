@@ -13,10 +13,10 @@
     <title>PEDASI Cycle Route Health Demo</title>
   </head>
 
-  <body id="page-top" onload="JavaScript:map_init()">
+  <body id="page-top" onload="JavaScript:map_init()" style="background: linear-gradient(rgba(255, 255, 255, .4), rgba(255, 255, 255, .4)), url(static/img/landscape.png); background-size: 2560px 1440px; background-repeat: no-repeat">
 
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="mainNav">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" id="mainNav">
         <a class="navbar-brand js-scroll-trigger" href="#page-top">PEDASI Cycle Route Health Demo</a>
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -33,8 +33,21 @@
 
     <!-- Our input form handled by Javascript -->
     <div class="container">
+      <div class="container mt-4 mb-1 pt-3 pb-3 pl-lg-3 rounded" style="background-color: rgba(135, 206, 250, 0.5)">
+        <div class="container">
+          <div class="row">
+            <div class="col text-center">Good</div>
+            <div class="col text-center">Moderate</div>
+            <div class="col text-center">Problematic</div>
+            <div class="col text-center">Hazardous</div>
+          </div>
+        </div>
+        <div class="mr-3 ml-3 mt-5 mb-5" id="aqi-ranges">
+        </div>
+      </div>
+
       <form name="mapParams">
-        <div class="container mt-4 mb-1 pt-3 pl-lg-3 border rounded">
+        <div class="container mt-4 mb-1 pt-3 pb-1 pl-lg-3 rounded" style="background-color: rgba(135, 206, 250, 0.5)">
           <div class="row">
             <div class="col-4">
               <label for="mapParamsCityName">PEDASI API Key</label>
@@ -72,19 +85,6 @@
             </div>
           </div>
         </div>
-
-        <div class="container mt-4 mb-1 pt-3 pl-lg-3 border rounded">
-          <div class="container">
-            <div class="row">
-              <div class="col text-center">Good</div>
-              <div class="col text-center">Moderate</div>
-              <div class="col text-center">Problematic</div>
-              <div class="col text-center">Hazardous</div>
-            </div>
-          </div>
-          <div class="mr-3 ml-3 mt-5 mb-5" id="aqi-ranges">
-          </div>
-        </div>
       </form>
     </div>
 
@@ -101,8 +101,8 @@
     <div class="container mt-3 pt-1 pl-lg-3 d-none" id="waypoint-report">
 
       <!-- Our average air quality index -->
-      <div class="container mb-1 pt-3 pl-lg-3">
-        <div class="row pb-1">
+      <div class="container mb-1 pt-3 pl-lg-3 rounded" style="background-color: rgba(255, 255, 255, 0.5)">
+        <div class="row">
           <div class="col-6 align-middle text-right pt-3">
             <h2>Average Air<br>Quality Index</h2>
           </div>
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Per-waypoint data per route -->
-      <div class="container mb-3 pt-3 pl-lg-3 border rounded" id="waypoint-data">
+      <div class="container mb-3 pt-3 pl-lg-3 rounded" id="waypoint-data" style="background-color: rgba(135, 206, 250, 0.5)">
         <h2>Route Health Overview</h2>
         <table class="table" id="waypoint-data-table">
           <thead>

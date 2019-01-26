@@ -78,7 +78,7 @@ function get_color_recs_from_aqi(aqi, aqi_ranges) {
     let rec;
     switch (true) {
         case (aqi < aqi_ranges[0]):
-            color_name = 'lime';
+            color_name = 'green';
             rec = AQI_METADATA_RECS[0];
             break;
         case (aqi < aqi_ranges[1]):
@@ -173,7 +173,7 @@ function add_aqi_route_overview(leaflet_wps, aqi_ranges) {
         let color_recs = get_color_recs_from_aqi(cs_level, aqi_ranges);
         let cs_majpol = wp[1].major_pollutant.pollutant + '<br>' + wp[1].major_pollutant.description;
         let new_wp_info = '<td>' + cs_level + '</td><td>' + cs_majpol + '</td>' +
-                          '<td style="mix-blend-mode: difference; color: black; background: ' + color_recs[0] + '">' + color_recs[1] + '</td></tr>';
+                          '<td style="color: black; background-color: ' + color_recs[0] + '">' + color_recs[1] + '</td></tr>';
 
         if (wp_num === 0) {
             // This is the first run through, so set the last known air quality data to this waypoint
