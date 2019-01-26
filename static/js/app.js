@@ -14,29 +14,37 @@ const MAX_AQI = 60.0;
 // Cycleroute waypoints over this number will not be processed
 const MAX_WAYPOINTS = 200;
 
+const AQI_METADATA_RANGES = [50, 100, 150];
+const AQI_METADATA_RECS = [
+    'Air quality is considered satisfactory, and poses no risk',
+    'Air quality is acceptable; however, for some pollutants there may be a moderate health concern.',
+    'Air quality is problematic; May experience health effects.',
+    'Air quality is hazardous; may experience more serious health effects.'
+];
+
 const AQI_CIRCULAR_STYLE = {
-        easing: 'easeInOut',
-        duration: 2000,
-        strokeWidth: 8,
-        trailWidth: 2,
-        from: {color: '#AA0000'},
-        to: {color: '#00AA00'},
-        //color: bar_color,
-        text: {
-            style: {
-                color: '#000000',
-                position: 'relative',
-                top: '30%',
-                transform: {
-                    prefix: true,
-                    value: 'translate(0%, -202%)'
-                },
-                'text-align': 'center',
-                'font-size': '28px',
-                'font-weight': 'bold'
-            }
+    easing: 'easeInOut',
+    duration: 2000,
+    strokeWidth: 8,
+    trailWidth: 2,
+    from: {color: '#AA0000'},
+    to: {color: '#00AA00'},
+    color: {color: '#808080'}, // Default, to be overwritten
+    text: {
+        style: {
+            color: '#000000',
+            position: 'relative',
+            top: '30%',
+            transform: {
+                prefix: true,
+                value: 'translate(0%, -202%)'
+            },
+            'text-align': 'center',
+            'font-size': '28px',
+            'font-weight': 'bold'
         }
-    };
+    }
+};
 
 
 let map;
@@ -60,44 +68,45 @@ function initialise_map() {
 }
 
 /**
- * Return a colour based on value of air quality index, from green (good) to crimson (bad).
+ * Return a colour and recommendation based on value of air quality index,
+ * from green (good) to crimson (bad).
  * @param {Number} aqi Value from 0-MAX_AQI indicating route average air quality
- * @return {String} color_name Name of the colour assigned based on given index
+ * @return {[String, String]} color_name,rec Name of the colour assigned based on index, and string recommendation
  */
-function get_color_from_aqi(aqi) {
-    let color_name = 'black';
+function get_color_recs_from_aqi(aqi, aqi_ranges) {
+    let color_name;
+    let rec;
     switch (true) {
-        case (aqi < 5):
-            color_name = 'green';
+        case (aqi < aqi_ranges[0]):
+            color_name = 'lime';
+            rec = AQI_METADATA_RECS[0];
             break;
-        case (aqi < 10):
+        case (aqi < aqi_ranges[1]):
             color_name = 'yellow';
+            rec = AQI_METADATA_RECS[1];
             break;
-        case (aqi < 15):
+        case (aqi < aqi_ranges[2]):
             color_name = 'orange';
-            break;
-        case (aqi < 20):
-            color_name = 'red';
-            break;
-        case (aqi < 30):
-            color_name = 'purple';
+            rec = AQI_METADATA_RECS[2];
             break;
         default:
-            color_name = 'crimson';
+            // It's in the hazardous area
+            color_name = 'lightcoral';
+            rec = AQI_METADATA_RECS[3];
             break;
     }
 
-    return color_name;
+    return [color_name, rec];
 }
 
 /**
  * Create a progressbar.js widget set to given air quality index number
  * @param {Number} avg_aqi Value from 0-MAX_AQI indicating route average air quality
  */
-function create_aqi_index(avg_aqi, html_id) {
+function create_aqi_index(avg_aqi, html_id, aqi_ranges) {
     $(html_id).empty();
 
-    let bar_color = get_color_from_aqi(avg_aqi);
+    let bar_color = get_color_recs_from_aqi(avg_aqi, aqi_ranges)[0];
 
     let style = $.extend({}, AQI_CIRCULAR_STYLE);
     style.color = bar_color;
@@ -111,11 +120,47 @@ function create_aqi_index(avg_aqi, html_id) {
     aqi_widget.animate((MAX_AQI - Math.min(avg_aqi, MAX_AQI)) / MAX_AQI);
 }
 
+function create_range_slider() {
+
+    var slider = document.getElementById('aqi-ranges');
+
+    noUiSlider.create(slider, {
+        range: {
+            'min': 0,
+            'max': 200
+        },
+        step: 5,
+        start: AQI_METADATA_RANGES,
+        margin: 5,
+        limit: 600,
+        connect: [true, true, true, true],
+        direction: 'ltr',
+        orientation: 'horizontal',
+        behaviour: 'tap-drag',
+        tooltips: true,
+        format: wNumb({
+            decimals: 0,
+        }),
+        pips: {
+            mode: 'range',
+            density: 4
+        }
+    });
+
+    let connect = slider.querySelectorAll('.noUi-connect');
+    let classes = ['good-color', 'acceptable-color', 'moderate-color', 'hazardous-color'];
+
+    for (let i = 0; i < connect.length; i++) {
+        connect[i].classList.add(classes[i]);
+    }
+
+}
+
 /**
  * Add per-waypoint air quality data to route overview table.
  * @param {Array} leaflet_wps Array of Leaflet lat/lng waypoints and CleanSpace air quality data
  */
-function add_aqi_route_overview(leaflet_wps) {
+function add_aqi_route_overview(leaflet_wps, aqi_ranges) {
     // Add rows of air quality data to our route health overview table, with
     // consecutive duplicate rows collapsed into single rows for brevity
     let last_wp = null;
@@ -124,10 +169,11 @@ function add_aqi_route_overview(leaflet_wps) {
         let wp = leaflet_wps[wp_num];
 
         // Extract the air quality data into an HTML-ised string
-        let cs_level = wp[1].index + ' ' + wp[1].level;
+        let cs_level = wp[1].index;
+        let color_recs = get_color_recs_from_aqi(cs_level, aqi_ranges);
         let cs_majpol = wp[1].major_pollutant.pollutant + '<br>' + wp[1].major_pollutant.description;
-        let cs_recs = wp[1].recommendations;
-        let new_wp_info = '<td>' + cs_level + '</td><td>' + cs_majpol + '</td><td>' + cs_recs + '</td></tr>';
+        let new_wp_info = '<td>' + cs_level + '</td><td>' + cs_majpol + '</td>' +
+                          '<td style="mix-blend-mode: difference; color: black; background: ' + color_recs[0] + '">' + color_recs[1] + '</td></tr>';
 
         if (wp_num === 0) {
             // This is the first run through, so set the last known air quality data to this waypoint
@@ -138,7 +184,7 @@ function add_aqi_route_overview(leaflet_wps) {
             // captured data to our table
             // Also add it if this is the last row in the waypoint array, otherwise it won't be added
             let wp_ref = (wp_num === leaflet_wps.length-1) ? wp_num +1: wp_num;
-            let new_index = null;
+            let new_index;
             if (wp_num == (last_wp + 1)) {
                 // There is only one row that contains this data, don't add a range
                 new_index = '<tr><td>' + (wp_ref) + '</td>';
@@ -160,15 +206,15 @@ function add_aqi_route_overview(leaflet_wps) {
  * @param {Array} leaflet_wps Array of Leaflet lat/lng waypoints and CleanSpace air quality data
  * @param {FeatureGroup} l_group The Leaflet feature group to which we add our markers
  */
-function add_route_to_map(leaflet_wps, l_group) {
+function add_route_to_map(leaflet_wps, l_group, aqi_ranges) {
     // Populate the Leaflet feature group with colour-coded route polylines between each waypoint
     for(let wp_num = 1; wp_num < leaflet_wps.length; wp_num++) {
         let wp = leaflet_wps[wp_num];
         let wp_p = leaflet_wps[wp_num-1];
 
         let cs_aqi = wp[1].index;
-        let l_color = get_color_from_aqi(cs_aqi);
-        let l_polyline = L.polyline([wp_p[0], wp[0]], { color: l_color, weight: 2, dashArray: '5,4', lineJoin: 'round' });
+        let color_recs = get_color_recs_from_aqi(cs_aqi, aqi_ranges);
+        let l_polyline = L.polyline([wp_p[0], wp[0]], { color: color_recs[0], weight: 4, dashArray: '5,4', lineJoin: 'round' });
 
         // Add polyline to a feature group, to make it easier to find boundary of interest
         l_group.addLayer(l_polyline);
@@ -299,21 +345,25 @@ async function generate_route_report(waypoints, map, pedasi_app_api_key) {
     let min_aqi = Math.min.apply(Math, leaflet_wps.map(function(w) { return w[1].index; }));
     let max_aqi = Math.max.apply(Math, leaflet_wps.map(function(w) { return w[1].index; }));
 
+    // Grab AQI range settings from multi-range slider
+    let aqi_ranges = document.getElementById('aqi-ranges').noUiSlider.get();
+
+    console.log(aqi_ranges);
+
+
     // Create/replace average air quality index widget with calculated average
-    create_aqi_index(min_aqi, '#min-aqi-circular');
-    create_aqi_index(avg_aqi, '#avg-aqi-circular');
-    create_aqi_index(max_aqi, '#max-aqi-circular');
+    create_aqi_index(avg_aqi, '#avg-aqi-circular', aqi_ranges);
 
     add_to_progress_log('Generating route map and air quality report...');
 
     // Create a Leaflet feature group on our map which contains the route and air quality markers,
     // then add the route and the waypoint markers to it
     let l_group = L.featureGroup().addTo(map);
-    add_route_to_map(leaflet_wps, l_group);
+    add_route_to_map(leaflet_wps, l_group, aqi_ranges);
     add_waypoint_popups(leaflet_wps, l_group);
 
     // Add summary route report
-    add_aqi_route_overview(leaflet_wps);
+    add_aqi_route_overview(leaflet_wps, aqi_ranges);
 
     // Pause to ensure last log entries are visible before progress panel is closed
     await sleep(500);
@@ -471,4 +521,5 @@ function get_cycle_routes() {
  */
 function map_init() {
     map = initialise_map();
+    create_range_slider();
 }
