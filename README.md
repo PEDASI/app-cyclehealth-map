@@ -42,7 +42,7 @@ By default, this will run the web server on port 8000.
 Then using a web browser:
 
 * If hosting the application locally on port 8000, go to http://localhost:8000.
-* If accessing the application via GitHub's gh-pages, go to https://southampton-rsg.github.io/app-cyclehealth-map/.
+* If accessing the application via GitHub's gh-pages, go to https://pedasi.github.io/app-cyclehealth-map/.
 
 You can then add your PEDASI Application or User API key, and select 'Get Routes'. The 'Cycle Route'
 dropdown will then be populated with all cycle routes within CISCO's cycle path catalogue. Click submit
