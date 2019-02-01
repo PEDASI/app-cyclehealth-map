@@ -51,3 +51,5 @@ obtained from CleanSpace. Hovering over a waypoint will show the extent of pollu
 in a popup.
 
 ## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
