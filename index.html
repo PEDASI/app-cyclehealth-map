@@ -35,19 +35,34 @@
     <div class="container">
       <div class="container mt-4 mb-1 pt-3 pb-3 pl-lg-3 rounded" style="background-color: rgba(135, 206, 250, 0.5)">
         <div class="container">
-          <div class="row">
+          <div class="row mb-1">
+            <h3>Personal Health Tolerances</h3>
+          </div>
+          <div class="row mb-2">
             <div class="col text-center">Good</div>
             <div class="col text-center">Moderate</div>
             <div class="col text-center">Problematic</div>
-            <div class="col text-center">Hazardous</div>
+            <div class="col text-center">Unhealthy or hazardous</div>
+          </div>
+          <div class="row">
+            <div class="col text-center small">Air quality satisfactory: little or no risk to everyone.</div>
+            <div class="col text-center small">Air quality moderate: some health concern for those with respiratory conditions. General public not affected.</div>
+            <div class="col text-center small">Air quality problematic: unhealthy for sensitive groups, general public likely not affected.</div>
+            <div class="col text-center small">Air quality unhealthy or hazardous: more serious health effects for those with conditions, general public likely to feel effects.</div>
           </div>
         </div>
         <div class="mr-3 ml-3 mt-5 mb-5" id="aqi-ranges">
+        </div>
+        <div class="container">
+          <p class="row small text-right">Air quality data provided by&nbsp; <a href="https://our.clean.space/">CleanSpace</a></p>
         </div>
       </div>
 
       <form name="mapParams">
         <div class="container mt-4 mb-1 pt-3 pb-1 pl-lg-3 rounded" style="background-color: rgba(135, 206, 250, 0.5)">
+          <div class="row mb-1">
+            <h3>Route Selection</h3>
+          </div>
           <div class="row">
             <div class="col-4">
               <label for="mapParamsCityName">PEDASI API Key</label>
@@ -84,6 +99,9 @@
               <button class="btn btn-primary" onclick="return select_gpx_file()">Upload</button>
             </div>
           </div>
+        <div class="container">
+          <p class="row small text-right">Manchester cycle route data provided by Cisco&nbsp; <a href="https://cityverve.org.uk/">CityVerve</a></p>
+        </div>
         </div>
       </form>
     </div>
